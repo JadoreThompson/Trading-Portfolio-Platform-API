@@ -5,16 +5,19 @@ import aiohttp
 
 # DIR
 from config import settings
-from models import MetricFilterObject, TradeObject
+from models import (
+    MetricFilterObject,
+    TradeObject,
+    SharpeRatioObject
+)
 
 # Oanda
 import oandapyV20.endpoints.accounts as accounts
 import oandapyV20.endpoints.trades as trades
 import oandapyV20.endpoints.orders as orders
 
-
 # FastAPI
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
 
@@ -183,3 +186,25 @@ async def get_trades(body: MetricFilterObject):
         return JSONResponse(status_code=200, content={"trades": sort_trades(r.response['trades'], body.dict())})
     except Exception as e:
         return JSONResponse(status_code=500, content={"type": f"{type(e)}", "error": str(e)})
+
+
+# TODO: Finish this
+@portfolio.post("/sharpe-ratio")
+async def get_sharpe_ratio(body: SharpeRatioObject):
+    try:
+        account_id = body.account_id
+        del body.account_id
+
+        r = trades.TradesList(account_id, params={"params": body.dict()})
+        settings.OANDA_CLIENT.request(r)
+
+        balance = 10000
+        portfolio_return = sum(item["realizedPL"] for item in r.response['trades']) / balance
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"type": f"{type(e)}", "error": str(e)})
+
+
+@portfolio.post("/max-drawdown")
+async def get_max_drawdown(body: None):
+    pass
