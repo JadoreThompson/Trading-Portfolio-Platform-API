@@ -1,12 +1,49 @@
-from alpaca.trading.requests import GetOrdersRequest
+import json
+from datetime import datetime
+from typing import List, AsyncGenerator
+import aiohttp
 
 # DIR
 from config import settings
-from models import AccountBody, AllOrderBody
+from models import PnlFilterBody
+
+# Oanda
+import oandapyV20
+import oandapyV20.endpoints.accounts as accounts
+import oandapyV20.endpoints.orders as orders
 
 # FastAPI
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
+
+
+# Functions
+def get_pnl(params: dict):
+    accountID = params['accountID']
+    del params['accountID']
+
+    r = orders.OrderList(accountID, params=params)
+    settings.OANDA_CLIENT.request(r)
+    data = r.response['orders']
+
+    if params['day']:
+        return sum([item['realizedPL'] for item in data if item['closeTime'] == params['day']])
+    if params['start'] and params['end']:
+        return sum([item['realizedPL'] for item in data if item['closeTime'] >= params['start'] and item['closeTime'] <= params['end']])
+    if params['start']:
+        return sum([item['realizedPL'] for item in data if item['closeTime'] >= params['start']])
+    if params['end']:
+        return sum([item['realizedPL'] for item in data if item['closeTime'] >= params['end']])
+
+
+
+async def get_oanda_session() -> AsyncGenerator[aiohttp.ClientSession, None]:
+    """
+    :return: Generator Object of a session with the Oanda Header
+    """
+    async with aiohttp.ClientSession(headers=settings.OANDA_HEADER) as session:
+        yield session
+
 
 # Initialisation
 portfolio = APIRouter(prefix='/portfolio', tags=['portfolio'])
@@ -14,56 +51,29 @@ portfolio = APIRouter(prefix='/portfolio', tags=['portfolio'])
 
 @portfolio.get("/")
 async def read_root():
-    return {"message": "Connected to portfolio"}
+    return {"message": "Running"}
 
 
-@portfolio.post("/daily-pnl", summary="Returns todays equity change")
-async def daily_pnl(account: AccountBody):
+@portfolio.get("/balance")
+async def get_balance():
     try:
-        equity = "{:.2f}".format(float(account.equity))
-        return JSONResponse(status_code=200, content={"equity": equity})
+        r = accounts.AccountSummary(settings.OANDA_TRADING_ACCOUNT_ID)
+        settings.OANDA_CLIENT.request(r)
+        return JSONResponse(status_code=200, content={"balance": f"{float(r.response['account']['balance']): .2f}"})
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e), 'type': f"{type(e)}"})
+        return JSONResponse(status_code=500, content={"type": f"{type(e)}", "error": str(e)})
 
 
-@portfolio.post("/live-pnl")
-async def live_pnl(account: AccountBody):
-    """
-    Utilises Websocket for live portfolio updates
-    :param account:
-    :return: Account Balance
-    """
-    pass
-
-
-import json
-
-
-@portfolio.post("/live-positions", summary="Returns all open positions")
-async def get_live_positions(account: AccountBody):
-    """
-    :param account:
-    :return: List of Live Positions
-    """
-    keys_to_remove = ["asset_marginable", "asset_id"]
-
+@portfolio.post("/daily-pnl")
+async def get_daily_pnl(body: PnlFilterBody):
     try:
-        positions = settings.trading_client.get_all_positions()
-        position_list = [{k: v for k, v in position.__dict__.items() if k not in keys_to_remove} for position in positions]
-        return JSONResponse(status_code=200, content=position_list)
+        return JSONResponse(status_code=200, content={"pnl": get_pnl(body.dict())})
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e), 'type': f"{type(e)}"})
+        return JSONResponse(status_code=500, content={"type": f"{type(e)}", "error": str(e)})
 
 
-@portfolio.post("/all-orders", summary="Returns all orders for the account")
-async def get_orders(all_order_request: AllOrderBody):
-    try:
-        del all_order_request.account_id
-        params = GetOrdersRequest(**all_order_request.dict())
-        orders = settings.trading_client.get_orders(filter=params)
-        return JSONResponse(status_code=200, content=orders)
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e), 'type': f"{type(e)}"})
-
-
-@portfolio.post("/sharpe-ratio ")
+@portfolio.post("/orders")
+async def get_trades(session: aiohttp.ClientSession = Depends(get_oanda_session)):
+    async with session.get(f"{settings.OANDA_BASE_URL}/v3/accounts/{settings.OANDA_TRADING_ACCOUNT_ID}/orders") as rsp:
+        data = await rsp.json()
+    return data
