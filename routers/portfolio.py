@@ -18,23 +18,67 @@ from fastapi.responses import JSONResponse
 
 
 # Functions
-def get_pnl(params: dict):
-    accountID = params['accountID']
-    del params['accountID']
+def get_pnl(params: dict) -> int | float:
+    """
+    :param params:
+    :return: Sum of realised gains for that day
+    """
+    try:
+        accountID = params['accountID']
+        del params['accountID']
 
-    r = orders.OrderList(accountID, params=params)
-    settings.OANDA_CLIENT.request(r)
-    data = r.response['orders']
+        r = orders.OrderList(accountID, params=params)
+        settings.OANDA_CLIENT.request(r)
+        data = r.response['orders']
 
-    if params['day']:
-        return sum([item['realizedPL'] for item in data if item['closeTime'] == params['day']])
-    if params['start'] and params['end']:
-        return sum([item['realizedPL'] for item in data if item['closeTime'] >= params['start'] and item['closeTime'] <= params['end']])
-    if params['start']:
-        return sum([item['realizedPL'] for item in data if item['closeTime'] >= params['start']])
-    if params['end']:
-        return sum([item['realizedPL'] for item in data if item['closeTime'] >= params['end']])
+        if params['day']:
+            return sum([item['realizedPL'] for item in data if item['closeTime'] == params['day']])
+        if params['start'] and params['end']:
+            return sum([item['realizedPL'] for item in data if params['start'] <= item['closeTime'] <= params['end']])
+        if params['start']:
+            return sum([item['realizedPL'] for item in data if item['closeTime'] >= params['start']])
+        if params['end']:
+            return sum([item['realizedPL'] for item in data if item['closeTime'] >= params['end']])
+    except Exception as e:
+        print(type(e), str(e))
 
+
+def get_risk_reward(params: dict) -> int | float:
+    """
+    :param params:
+    :return: Average multiplier of the distance between the open price, stop price against the open price and take profit price
+    """
+
+    def risk_reward_calculation(trades: List) -> int | float:
+        return sum([(float(trade['takeProfitOrder']['price']) - float(trade['price'])) /
+                    (float(trade['price']) - float(trade['stopLossOrder']['price'])) for trade in trades]) / len(trades)
+
+    try:
+        accountID = params['accountID']
+        del params['accountID']
+
+        # Making Request
+        r = orders.OrderList(accountID, params=params)
+        settings.OANDA_CLIENT.request(r)
+        data = r.response['orders']
+
+        # Getting trades
+        trades = []
+        if params['day']:
+            trades = [item for item in data if item['closeTime'] == params['day']]
+        elif params['start'] and params['end']:
+            trades = [item for item in data if params['start'] <= item['closeTime'] <= params['end']]
+        elif params['start']:
+            trades = [item for item in data if item['closeTime'] >= params['start']]
+        elif params['end']:
+            trades = [item for item in data if item['closeTime'] >= params['end']]
+
+        if len(trades) > 0:
+            return risk_reward_calculation(trades)
+        else:
+            return 0
+    except Exception as e:
+        print(type(e), str(e))
 
 
 async def get_oanda_session() -> AsyncGenerator[aiohttp.ClientSession, None]:
