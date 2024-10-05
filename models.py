@@ -8,7 +8,7 @@ from typing import Optional, List
 from pydantic import BaseModel, Field
 
 
-class PnlFilterBody(BaseModel):
+class MetricFilterObject(BaseModel):
     accountID: str
     ids: Optional[List[str]] = None
     state: Optional[TradeStateTypes] = Field(TradeStateTypes.ALL.value,
@@ -20,3 +20,11 @@ class PnlFilterBody(BaseModel):
     end: Optional[str] = Field(None, description="The end date")
     beforeID: Optional[str] = None
 
+
+class TradeObject(BaseModel):
+    price: int | float
+    stop_loss: int | float
+    take_profit: int | float
+    open_time: datetime
+    close_time: Optional[datetime] = None
+    realised_pnl: int | float
