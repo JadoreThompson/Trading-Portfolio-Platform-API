@@ -1,19 +1,29 @@
-from enums import TradeStatusTypes
+from enums import TradeStatusTypes, IntervalTypes
 
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
-class TradeRequest(BaseModel):
+class BalanceRequest(BaseModel):
+    account_id: str
+
+
+class TradeQueryParams(BaseModel):
     account_id: str
     trade_open_time: Optional[str] = None
     trade_close_time: Optional[str] = None
-    day: Optional[str] = None
     symbol: Optional[str] = None
 
 
+class RiskRatioRequest(BaseModel):
+    start: datetime
+    end: datetime
+    interval: IntervalTypes = Field(default='weekly', description="The interval used for performance check. Defaults to weekly")
+
+
+# Objects
 class TradeObject(BaseModel):
     trade_id: Optional[str] = None
     order_id: Optional[str] = None
