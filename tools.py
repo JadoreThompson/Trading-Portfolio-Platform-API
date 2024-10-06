@@ -1,6 +1,8 @@
 import math
-from typing import List
+from typing import List, Tuple
 
+
+# Arithemtic Tools
 
 def sharpe_std(returns) -> float | str:
     """
@@ -128,18 +130,28 @@ def treynor_ratio(portfolio_return, periodic_returns, risk_free_return):
         return 0
 
 
-def test():
+# Database Tool
+def generate_select_args(params: dict) -> Tuple[str, str, str, list]:
     """
-    A test function to calculate and print the Sharpe, Sortino, and Treynor ratios for a sample portfolio.
+    :param params:(dict):
+    :return: Tuple
+    - string of columns e.g. name, sname, color
+    - string of placeholders e.g. $1, $2, $3
+    - list of values e.g. jeff, thompson, red
     """
-    portfolio_return = 7
-    periodic_returns = [-1, 6, 8, 9]
-    risk_free_return = 4.25
+    try:
+        cols = [key for key, value in params.items() if value]
+        placeholders = [f"${i}" for i in range(1, len(cols) + 1)]
+        query_conditions = " AND ".join([f"{cols[i]} = {placeholders[i]}" for i in range(len(cols))])
+        args = [params[key] for key in cols]
+        return ", ".join(cols), ", ".join(placeholders), query_conditions, args
+    except Exception as e:
+        raise Exception(e)
 
-    print("Performance Across {} months".format(len(periodic_returns)))
-    print("- Sharpe Ratio: {}".format(sharpe_ratio(portfolio_return, periodic_returns, risk_free_return)))
-    print("- Sortino Ratio: {}".format(sortino_ratio(portfolio_return, periodic_returns, risk_free_return)))
-    print("- Treynor Ratio: {}".format(treynor_ratio(portfolio_return, periodic_returns, risk_free_return)))
+
+def test():
+    print(generate_select_args({"name": "james", 'surname': 'thompson'}))
+
 
 
 if __name__ == "__main__":
