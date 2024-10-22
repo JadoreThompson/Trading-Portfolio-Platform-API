@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block stylesheet %}
+<style>
+    main .container {
+        position: absolute;
+        display: flex;
+        top: 20%;
+        translate: transform(-50%, -50%);
+    }
+</style>
+{% endblock %}
+
+{% block title %}Get Key{% endblock %}
+
+{% block content %}
+<main role="main">
+    <div class="container">
+        <div class="card">
+            <form action="/generate-key" method="post">
+                <input type="text" placeholder="api-key">
+                <input type="submit" value="Generate Key">
+            </form>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block javascript %}
+{% endblock %}
