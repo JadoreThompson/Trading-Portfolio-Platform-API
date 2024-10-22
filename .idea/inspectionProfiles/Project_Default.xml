@@ -1,0 +1,134 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="HtmlUnknownTag" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="myValues">
+        <value>
+          <list size="7">
+            <item index="0" class="java.lang.String" itemvalue="nobr" />
+            <item index="1" class="java.lang.String" itemvalue="noembed" />
+            <item index="2" class="java.lang.String" itemvalue="comment" />
+            <item index="3" class="java.lang.String" itemvalue="noscript" />
+            <item index="4" class="java.lang.String" itemvalue="embed" />
+            <item index="5" class="java.lang.String" itemvalue="script" />
+            <item index="6" class="java.lang.String" itemvalue="style" />
+          </list>
+        </value>
+      </option>
+      <option name="myCustomValuesEnabled" value="true" />
+    </inspection_tool>
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <value>
+          <list size="90">
+            <item index="0" class="java.lang.String" itemvalue="pydantic" />
+            <item index="1" class="java.lang.String" itemvalue="pydantic_core" />
+            <item index="2" class="java.lang.String" itemvalue="pip" />
+            <item index="3" class="java.lang.String" itemvalue="grokcore.formlib" />
+            <item index="4" class="java.lang.String" itemvalue="zope.contenttype" />
+            <item index="5" class="java.lang.String" itemvalue="BTrees" />
+            <item index="6" class="java.lang.String" itemvalue="grokcore.annotation" />
+            <item index="7" class="java.lang.String" itemvalue="zope.proxy" />
+            <item index="8" class="java.lang.String" itemvalue="grokcore.view" />
+            <item index="9" class="java.lang.String" itemvalue="pycparser" />
+            <item index="10" class="java.lang.String" itemvalue="grokcore.security" />
+            <item index="11" class="java.lang.String" itemvalue="zope.publisher" />
+            <item index="12" class="java.lang.String" itemvalue="zope.browserpage" />
+            <item index="13" class="java.lang.String" itemvalue="zope.hookable" />
+            <item index="14" class="java.lang.String" itemvalue="zope.size" />
+            <item index="15" class="java.lang.String" itemvalue="zope.keyreference" />
+            <item index="16" class="java.lang.String" itemvalue="zope.app.appsetup" />
+            <item index="17" class="java.lang.String" itemvalue="zope.authentication" />
+            <item index="18" class="java.lang.String" itemvalue="zope.security" />
+            <item index="19" class="java.lang.String" itemvalue="grokcore.layout" />
+            <item index="20" class="java.lang.String" itemvalue="persistent" />
+            <item index="21" class="java.lang.String" itemvalue="zope.catalog" />
+            <item index="22" class="java.lang.String" itemvalue="zdaemon" />
+            <item index="23" class="java.lang.String" itemvalue="zope.ptresource" />
+            <item index="24" class="java.lang.String" itemvalue="zope.tales" />
+            <item index="25" class="java.lang.String" itemvalue="grokcore.content" />
+            <item index="26" class="java.lang.String" itemvalue="zope.minmax" />
+            <item index="27" class="java.lang.String" itemvalue="zope.cachedescriptors" />
+            <item index="28" class="java.lang.String" itemvalue="zope.deferredimport" />
+            <item index="29" class="java.lang.String" itemvalue="zope.location" />
+            <item index="30" class="java.lang.String" itemvalue="zope.filerepresentation" />
+            <item index="31" class="java.lang.String" itemvalue="grokcore.catalog" />
+            <item index="32" class="java.lang.String" itemvalue="zope.session" />
+            <item index="33" class="java.lang.String" itemvalue="ZConfig" />
+            <item index="34" class="java.lang.String" itemvalue="zope.i18n" />
+            <item index="35" class="java.lang.String" itemvalue="zope.interface" />
+            <item index="36" class="java.lang.String" itemvalue="zope.contentprovider" />
+            <item index="37" class="java.lang.String" itemvalue="zope.testing" />
+            <item index="38" class="java.lang.String" itemvalue="zope.securitypolicy" />
+            <item index="39" class="java.lang.String" itemvalue="zope.viewlet" />
+            <item index="40" class="java.lang.String" itemvalue="zope.index" />
+            <item index="41" class="java.lang.String" itemvalue="zope.formlib" />
+            <item index="42" class="java.lang.String" itemvalue="grok" />
+            <item index="43" class="java.lang.String" itemvalue="multipart" />
+            <item index="44" class="java.lang.String" itemvalue="zope.dottedname" />
+            <item index="45" class="java.lang.String" itemvalue="zope.intid" />
+            <item index="46" class="java.lang.String" itemvalue="zope.browserresource" />
+            <item index="47" class="java.lang.String" itemvalue="zope.processlifetime" />
+            <item index="48" class="java.lang.String" itemvalue="z3c.flashmessage" />
+            <item index="49" class="java.lang.String" itemvalue="zope.annotation" />
+            <item index="50" class="java.lang.String" itemvalue="grokcore.component" />
+            <item index="51" class="java.lang.String" itemvalue="z3c.pt" />
+            <item index="52" class="java.lang.String" itemvalue="cffi" />
+            <item index="53" class="java.lang.String" itemvalue="z3c.autoinclude" />
+            <item index="54" class="java.lang.String" itemvalue="martian" />
+            <item index="55" class="java.lang.String" itemvalue="zc.lockfile" />
+            <item index="56" class="java.lang.String" itemvalue="zope.datetime" />
+            <item index="57" class="java.lang.String" itemvalue="zope.password" />
+            <item index="58" class="java.lang.String" itemvalue="zope.browser" />
+            <item index="59" class="java.lang.String" itemvalue="zope.error" />
+            <item index="60" class="java.lang.String" itemvalue="zope.login" />
+            <item index="61" class="java.lang.String" itemvalue="Chameleon" />
+            <item index="62" class="java.lang.String" itemvalue="zope.component" />
+            <item index="63" class="java.lang.String" itemvalue="python-gettext" />
+            <item index="64" class="java.lang.String" itemvalue="zodbpickle" />
+            <item index="65" class="java.lang.String" itemvalue="zope.deprecation" />
+            <item index="66" class="java.lang.String" itemvalue="zope.container" />
+            <item index="67" class="java.lang.String" itemvalue="zope.lifecycleevent" />
+            <item index="68" class="java.lang.String" itemvalue="zc.catalog" />
+            <item index="69" class="java.lang.String" itemvalue="ZODB" />
+            <item index="70" class="java.lang.String" itemvalue="zope.app.wsgi" />
+            <item index="71" class="java.lang.String" itemvalue="zope.site" />
+            <item index="72" class="java.lang.String" itemvalue="grokcore.chameleon" />
+            <item index="73" class="java.lang.String" itemvalue="zope.event" />
+            <item index="74" class="java.lang.String" itemvalue="grokcore.viewlet" />
+            <item index="75" class="java.lang.String" itemvalue="zope.principalregistry" />
+            <item index="76" class="java.lang.String" itemvalue="zope.app.publication" />
+            <item index="77" class="java.lang.String" itemvalue="zope.i18nmessageid" />
+            <item index="78" class="java.lang.String" itemvalue="grokcore.site" />
+            <item index="79" class="java.lang.String" itemvalue="zope.pagetemplate" />
+            <item index="80" class="java.lang.String" itemvalue="zope.configuration" />
+            <item index="81" class="java.lang.String" itemvalue="zope.exceptions" />
+            <item index="82" class="java.lang.String" itemvalue="zope.errorview" />
+            <item index="83" class="java.lang.String" itemvalue="grokcore.traverser" />
+            <item index="84" class="java.lang.String" itemvalue="zope.traversing" />
+            <item index="85" class="java.lang.String" itemvalue="zope.schema" />
+            <item index="86" class="java.lang.String" itemvalue="grokcore.message" />
+            <item index="87" class="java.lang.String" itemvalue="zope.tal" />
+            <item index="88" class="java.lang.String" itemvalue="transaction" />
+            <item index="89" class="java.lang.String" itemvalue="zope.generations" />
+          </list>
+        </value>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyPep8Inspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <option name="ignoredErrors">
+        <list>
+          <option value="W605" />
+          <option value="E303" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyPep8NamingInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <option name="ignoredErrors">
+        <list>
+          <option value="N806" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>
