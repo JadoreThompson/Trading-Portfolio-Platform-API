@@ -4,6 +4,7 @@ from argon2 import PasswordHasher
 # Local
 from db_models import Users
 from dependencies import get_session
+from config import API_KEY_ALIAS, ph
 
 # Starlette
 from fastapi.responses import JSONResponse
@@ -22,7 +23,6 @@ EXCLUDED_PATHS = [
 
 class AuthenticateHeaderMiddleware(BaseHTTPMiddleware):
     _KEYS = ['dog']
-    _PH = PasswordHasher()
 
     def __init__(self, app):
         super().__init__(app)
@@ -32,13 +32,13 @@ class AuthenticateHeaderMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
             return response
 
-        api_key = request.headers.get('api-key', None)
+        api_key = request.headers.get(API_KEY_ALIAS, None)
 
         if not api_key:
             return JSONResponse(status_code=401, content={'Error': 'API Key not provided'})
 
         async with get_session() as sess:
-            result = await sess.execute(select(Users).where(Users.api_key.in_([str(self._PH.hash(api_key))])))
+            result = await sess.execute(select(Users).where(Users.api_key == str(ph.hash(api_key))))
             if not result.scalars().first():
                 return JSONResponse(status_code=401, content={'Error': 'API Key Invalid'})
 
@@ -59,7 +59,7 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
             return response
 
-        api_key = request.headers.get('api-key')
+        api_key = request.headers.get(API_KEY_ALIAS)
 
         self.request_counter.setdefault(api_key, [0, datetime.now()])
         api_key_usage = self.request_counter.get(api_key)
