@@ -1,4 +1,7 @@
+from contextlib import asynccontextmanager
 from datetime import timedelta, datetime
+
+import argon2.exceptions
 from argon2 import PasswordHasher
 
 # Local
@@ -15,6 +18,7 @@ from starlette.responses import Response
 # SQLAlchemy
 from sqlalchemy import select
 
+from exceptions import DoesNotExist
 
 EXCLUDED_PATHS = [
     '/', '/login', '/login-user', '/register', '/generate-key'
@@ -22,31 +26,58 @@ EXCLUDED_PATHS = [
 
 
 class AuthenticateHeaderMiddleware(BaseHTTPMiddleware):
-    _KEYS = ['dog']
+    """
+    Checks that the api key is present in header and that it matches
+    with an existing key stored
+    """
+    _KEYS = [
+        "$argon2id$v=19$m=102400,t=2,p=8$1F7sQVRlqtD0lYmWTEsKcA$e2q5x2hbsBo2cxfIWXfco9bXq5A45dXL8dA3HP/UbAE",
+        'dog'
+    ]
 
     def __init__(self, app):
         super().__init__(app)
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+        """
+        - Passes through EXCLUDED_PATHS
+        - Checks with DB if the key's hash is present
+        """
         if request.url.path in EXCLUDED_PATHS:
             response = await call_next(request)
             return response
 
         api_key = request.headers.get(API_KEY_ALIAS, None)
-
         if not api_key:
-            return JSONResponse(status_code=401, content={'Error': 'API Key not provided'})
+            return JSONResponse(status_code=401, content={'error': 'API Key not provided'})
 
-        async with get_session() as sess:
-            result = await sess.execute(select(Users.email).where(Users.api_key == str(ph.hash(api_key))))
-            if not result.scalars().first():
-                return JSONResponse(status_code=401, content={'Error': 'API Key Invalid'})
+        async with get_session() as session:
+            result = await session.execute(
+                select(Users)
+                .where(Users.api_key != None)
+            )
 
-        response = await call_next(request)
-        return response
+            users = result.scalars().all()
+            if not users:
+                return JSONResponse(status_code=401, content={'error': 'Something went wrong'})
+            for user in users:
+                try:
+                    if ph.verify(user.api_key, api_key):
+                        return await call_next(request)
+                except argon2.exceptions.VerifyMismatchError:
+                    continue
+            return JSONResponse(status_code=401, content={'Invalid key'})
+
+
+
 
 
 class RateLimitingMiddleware(BaseHTTPMiddleware):
+    """
+    Keeps track of the user's request
+    stores the request count and request date in a list
+    [count, date]
+    """
     _TIME_LIMIT = timedelta(minutes=1)
     _REQUEST_LIMIT = 5
 

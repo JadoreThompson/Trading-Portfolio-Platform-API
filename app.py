@@ -80,7 +80,7 @@ async def login(request: Request, form_data: LoginForm, session: AsyncSession = 
                                         .where(Users.password == ph.hash(form_data.password)))
 
         if not result.scalars().first():
-            raise DoesNotExist(request, 'User')
+            raise DoesNotExist('User')
         return JSONResponse(status_code=200, content={'message': 'User logged in successfully'})
     except DoesNotExist:
         raise
@@ -90,15 +90,15 @@ async def login(request: Request, form_data: LoginForm, session: AsyncSession = 
 
 @app.post('/generate-key')
 async def generate_key(session: AsyncSession = Depends(get_session)):
+    """Grabs cookie and inserts api_key"""
     try:
-        key = ph.hash(str(uuid4()))
-        # await session.delete(Users).where(Users)
-        # await session.commit()
+        key = ph.hash(uuid4())
+        return JSONResponse(status_code=200, content={'key': key})
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e), 'type': f"{type(e)}"})
+        print(type(e), str(e))
+        raise
 
 
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run('app:app', port=80)

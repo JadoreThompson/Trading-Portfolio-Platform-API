@@ -1,8 +1,14 @@
 import os
 from dotenv import load_dotenv
 from urllib.parse import quote
-from sqlalchemy.ext.asyncio import create_async_engine
 from argon2 import PasswordHasher
+
+# Local
+from db_models import Users
+
+# SA
+from sqlalchemy.ext.asyncio import create_async_engine
+
 
 load_dotenv()
 
@@ -12,6 +18,6 @@ DB_URI = \
 @{os.getenv("DB_HOST")}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
 DB_ENGINE = create_async_engine(DB_URI)
 
-API_KEY_ALIAS = 'api_key'
+API_KEY_ALIAS = 'api-key'
 
 ph = PasswordHasher(time_cost=2, memory_cost=102400, parallelism=8)
