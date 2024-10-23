@@ -5,7 +5,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 # Local
-from enums import OrderType
+from enums import OrderType, Metrics
 
 
 class Base(BaseModel):
@@ -151,10 +151,16 @@ class AssetAllocationRequestBody(Base):
     is_active: bool
 
 
-class ProfitRequestBody(Base):
+class PeriodRequestBody(Base):
     close_start: Optional[datetime] = None
     close_end: Optional[datetime] = None
 
+
+class MetricRequestBody(PeriodRequestBody):
+    metric: Metrics
+
+class WinrateRequestBody(PeriodRequestBody):
+    is_active: bool = False
 
 class GenerateKey(Base):
     """

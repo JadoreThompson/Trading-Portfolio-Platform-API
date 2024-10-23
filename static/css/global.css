@@ -24,8 +24,10 @@ a:hover {
     background-color: #0345fc;
     border: 2px solid #0345fc !important;
 }
-.btn-primary a {
+.btn-primary a
+{
     color: white;
+    text-decoration: none;
 }
 .btn-primary:hover {
     background-color: white;
@@ -36,6 +38,9 @@ a:hover {
     color: #0345fc;
     text-decoration: none;
 }
+.btn-secondary a {
+    color: var(--primary-color);
+}
 .btn.btn-secondary {
     background-color: white;
     border: 2px solid #0345fc !important;
@@ -44,6 +49,10 @@ a:hover {
 .btn.btn-secondary:hover {
     background-color: #0345fc !important;
     color: white !important;
+}
+.btn-secondary a:hover {
+    color: white;
+    text-decoration: none;
 }
 .generate-key-btn {
     padding: 1rem;

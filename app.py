@@ -17,7 +17,7 @@ from routers.portfolio import portfolio
 # FastAPI
 from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -68,36 +68,8 @@ async def read_root(request: Request):
 
 @app.get('/login')
 async def get_login(request: Request):
-    return templates.TemplateResponse(
-        request=request, name='login.html'
-    )
-
-
-@app.post('/login-user')
-async def login(form_data: LoginForm, session: AsyncSession = Depends(get_session)):
-    try:
-        result = await session.execute(select(Users.email)\
-                                       .where(Users.email == form_data.email)\
-                                        .where(Users.password == ph.hash(form_data.password)))
-
-        if not result.scalars().first():
-            raise DoesNotExist('User')
-        return JSONResponse(status_code=200, content={'message': 'User logged in successfully'})
-    except DoesNotExist:
-        raise
-    except Exception:
-        raise
-
-
-@app.post('/generate-key')
-async def generate_key(session: AsyncSession = Depends(get_session)):
-    """Grabs cookie and inserts api_key"""
-    try:
-        key = ph.hash(uuid4())
-        return JSONResponse(status_code=200, content={'key': key})
-    except Exception as e:
-        print(type(e), str(e))
-        raise
+    web_app_login_url = "login"
+    return RedirectResponse(web_app_login_url)
 
 
 if __name__ == "__main__":
