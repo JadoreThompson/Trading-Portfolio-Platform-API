@@ -26,6 +26,7 @@ portfolio = APIRouter(prefix='/portfolio', tags=['portfolio'])
 
 @portfolio.get("/balance")
 async def get_balance(user: Users = Depends(get_user)):
+
     try:
         return JSONResponse(status_code=200, content={'balance': user.balance})
     except DoesNotExist:

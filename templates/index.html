@@ -1,29 +1,132 @@
 {% extends "base.html" %}
 
 {% block stylesheet %}
-<style>
-    main .container {
-        position: absolute;
-        display: flex;
-        top: 20%;
-        translate: transform(-50%, -50%);
-    }
-</style>
+<link rel="stylesheet" href="{{ url_for('static', path='css/index.css') }}">
 {% endblock %}
 
-{% block title %}Get Key{% endblock %}
+{% block title %}Documnetation{% endblock %}
 
 {% block content %}
-<main role="main">
-    <div class="container">
-        <div class="card">
-            <form action="/generate-key" method="post">
-                <input type="text" placeholder="api-key" name="api_key">
-                <input type="submit" value="Generate Key">
-            </form>
+<header>
+    <div class="header-container container">
+        <div class="img-container">
+            <img src="{{ url_for('static', path='images/logo.png') }}" alt="logo">
+        </div>
+        <div class="container">
+            <button class="btn btn-primary"><a href="/login">Generate Key</a></button>
         </div>
     </div>
-</main>
+</header>
+
+<!--First block-->
+<section class="first-section container">
+    <div class="inner-container container">
+        <div class="cta-container container">
+            <h1>Stay on track of your trades with our RESTAPI</h1>
+        </div>
+        <div class="container">
+            <span>Retrieve insights, and information with a click of the button</span>
+        </div>
+        <div class="container">
+            <button class="generate-key-btn btn btn-primary"><a href="/login">Generate Key</a></button>
+        </div>
+    </div>
+</section>
+
+<!--Second Block-->
+<script>hljs.highlightAll();</script>
+<section class="second-section container">
+    <div class="code-container container">
+        <pre><code class="language-python">
+        API_KEY = os.getenv('API_KEY')
+        BASE_URL = 'http://127.0.0.1:80'
+
+        r = requests.get(f'{BASE_URL}/balance')
+        balance = r.json()
+
+        '''{'balance': 10000}'''
+        </code></pre>
+    </div>
+</section>
+
+<!--Third Block-->
+<section class="third-section container">
+    <div class="container row">
+        <div class="col card">
+            <div class="card-image">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="120px">
+                    <rect x="1" y="1" width="38" height="30" fill="#FFFFFF" stroke="#4788C7" stroke-width="1"/>
+                    <rect x="2" y="2" width="36" height="7" fill="#98CCFD"/>
+                    <rect x="14" y="4" width="22" height="3" fill="#FFFFFF"/>
+                    <circle cx="5.5" cy="5.5" r="1.5" fill="#DFF0FE"/>
+                    <circle cx="10.5" cy="5.5" r="1.5" fill="#DFF0FE"/>
+                    <polyline
+                        points="2,28 10,18 15,22 25,10 32,18 38,15"
+                        fill="none"
+                        stroke="#4788C7"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    />
+                    <circle cx="10" cy="18" r="1.8" fill="#DFF0FE" stroke="#4788C7" stroke-width="1"/>
+                    <circle cx="15" cy="22" r="1.8" fill="#DFF0FE" stroke="#4788C7" stroke-width="1"/>
+                    <circle cx="25" cy="10" r="1.8" fill="#DFF0FE" stroke="#4788C7" stroke-width="1"/>
+                    <circle cx="32" cy="18" r="1.8" fill="#DFF0FE" stroke="#4788C7" stroke-width="1"/>
+                </svg>
+            </div>
+            <div class="card-title">
+                <h4>Track your performance</h4>
+            </div>
+            <div class="card-text">
+                <p>Track your performance seamlessly, integrate with no strain</p>
+            </div>
+        </div>
+        <div class="col card">
+            <div class="card-image">
+                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 40 40" style="width:120px;" xml:space="preserve"> <g> <rect x="1" y="1" style="fill:#FFFFFF;" width="38" height="30"></rect> </g> <polyline style="fill:none;stroke:#4788C7;stroke-linecap:round;stroke-miterlimit:10;" points="25.5,30.5 38.5,30.5 38.5,1.5 1.5,1.5 1.5,30.5 16.5,30.5 "></polyline> <g> <rect x="2" y="2" style="fill:#98CCFD;" width="36" height="7"></rect> </g> <rect x="14" y="4" style="fill:#FFFFFF;" width="22" height="3"></rect> <circle style="fill:#DFF0FE;" cx="10.5" cy="5.5" r="1.5"></circle> <circle style="fill:#DFF0FE;" cx="5.5" cy="5.5" r="1.5"></circle> <g> <path style="fill:#98CCFD;" d="M1.5,38.5v-3H17c1.379,0,2.5-1.121,2.5-2.5v-9.5h-4.398L21,16.76l5.898,6.74H22.5V33 c0,3.032-2.468,5.5-5.5,5.5H1.5z"></path> <g> <path style="fill:#4788C7;" d="M21,17.519L25.796,23H23h-1v1v9c0,2.757-2.243,5-5,5H2v-2h15c1.654,0,3-1.346,3-3v-9v-1h-1h-2.796 L21,17.519 M21,16l-7,8h5v9c0,1.105-0.895,2-2,2H1v4h16c3.314,0,6-2.686,6-6v-9h5L21,16L21,16z"></path> </g> </g> </svg>
+            </div>
+            <div class="card-title">
+                <h4>REST Framework</h4>
+            </div>
+            <div class="card-text">
+                <p>Gain meaning insights with our REST API, returning data in JSON for all platforms to enjoy</p>
+            </div>
+        </div>
+        <div class="col card">
+            <div class="card-image">
+                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 40 40" style="width:120px;" xml:space="preserve"><g id="Layer_1"> <g> <circle style="fill:#DFF0FE;" cx="24" cy="13" r="4.5"></circle> <path style="fill:#4788C7;" d="M24,9c2.206,0,4,1.794,4,4s-1.794,4-4,4s-4-1.794-4-4S21.794,9,24,9 M24,8c-2.761,0-5,2.239-5,5 s2.239,5,5,5s5-2.239,5-5S26.761,8,24,8L24,8z"></path> </g> <line style="fill:none;stroke:#4788C7;stroke-width:2;stroke-miterlimit:10;" x1="4.148" y1="6.615" x2="11.935" y2="9.403"></line> <g> <g> <path style="fill:#B6DCFE;" d="M30.189,34.5l-3.194-4.795L26.545,34.5h-10.97l1.423-10.187l-5.92-5.821 C10.71,18.097,10.5,17.562,10.5,17V8.5c0-1.103,0.897-2,2-2s2,0.897,2,2v7.734l3.861,3.217l7.509,2.031 c0.583,0.146,1.069,0.515,1.376,1.04L35.048,34.5H30.189z"></path> </g> <g> <path style="fill:#4788C7;" d="M12.5,7C13.327,7,14,7.673,14,8.5V9v3.5V16v0.468l0.36,0.3l3.597,2.998l0.168,0.14l0.211,0.057 l7.422,2.007c0.443,0.111,0.818,0.396,1.082,0.846L34.125,34h-3.668l-2.264-3.398l-1.564-2.348l-0.264,2.809L26.09,34h-9.94 l1.309-9.368l0.07-0.499l-0.359-0.353l-5.71-5.613C11.163,17.849,11,17.435,11,17v-4.5V9V8.5C11,7.673,11.673,7,12.5,7 M12.5,6 C11.119,6,10,7.119,10,8.5V9v3.5V17c0,0.686,0.26,1.347,0.727,1.849l5.741,5.645L15,35h12l0.361-3.844L29.922,35h6.049 l-8.293-12.729C27.319,21.658,26.733,21.183,26,21l-7.403-2.002L15,16v-3.5V9V8.5C15,7.119,13.881,6,12.5,6L12.5,6z"></path> </g> </g> <g> <rect x="1.5" y="34.5" style="fill:#98CCFD;" width="37" height="4"></rect> <g> <path style="fill:#4788C7;" d="M38,35v3H2v-3H38 M39,34H1v5h38V34L39,34z"></path> </g> </g> <g> <polygon style="fill:#98CCFD;" points="1.549,9.004 4.107,1.631 7.378,2.729 3.875,12.833 "></polygon> <path style="fill:#4788C7;" d="M4.418,2.263l2.323,0.78l-2.989,8.622L2.099,8.946L4.418,2.263 M3.797,1L1,9.063L4,14L8.016,2.416 L3.797,1L3.797,1z"></path> </g> </g> <g id="Layer_2"> </g> </svg>
+            </div>
+            <div class="card-title">
+                <h4>Simplicity</h4>
+            </div>
+            <div class="card-text">
+                <p>Made for developers with simplicity at the forefront. Maintaining the REST characteristics</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="fourth-section container">
+    <button class="generate-key-btn btn btn-secondary">Generate Key</button>
+</section>
+
+<!--Footer-->
+<div class="footer-container container">
+  <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
+    <div class="col-md-4 d-flex align-items-center">
+      <a href="/" class="mb-3 me-2 mb-md-0 text-body-secondary text-decoration-none lh-1">
+        <svg class="bi" width="30" height="24"><use xlink:href="#bootstrap"></use></svg>
+      </a>
+      <span class="mb-3 mb-md-0 text-body-secondary">© 2024 Company, Inc</span>
+    </div>
+
+    <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
+      <li class="ms-3"><a class="text-body-secondary" href="#"><svg class="bi" width="24" height="24"><use xlink:href="#twitter"></use></svg></a></li>
+      <li class="ms-3"><a class="text-body-secondary" href="#"><svg class="bi" width="24" height="24"><use xlink:href="#instagram"></use></svg></a></li>
+      <li class="ms-3"><a class="text-body-secondary" href="https://github.com/JadoreThompson/" target="_blank"><i class="social fa-brands fa-github"></i></a></li>
+    </ul>
+  </footer>
+</div>
 {% endblock %}
 
 {% block javascript %}

@@ -8,6 +8,7 @@ from argon2 import PasswordHasher
 from db_models import Users
 from dependencies import get_session
 from config import API_KEY_ALIAS, ph
+from exceptions import DoesNotExist
 
 # Starlette
 from fastapi.responses import JSONResponse
@@ -18,12 +19,10 @@ from starlette.responses import Response
 # SQLAlchemy
 from sqlalchemy import select
 
-from exceptions import DoesNotExist
 
-EXCLUDED_PATHS = [
-    '/', '/login', '/login-user', '/register', '/generate-key'
+_EXCLUDED_PATHS = [
+    '/portfolio'
 ]
-
 
 class AuthenticateHeaderMiddleware(BaseHTTPMiddleware):
     """
@@ -35,6 +34,8 @@ class AuthenticateHeaderMiddleware(BaseHTTPMiddleware):
         'dog'
     ]
 
+
+
     def __init__(self, app):
         super().__init__(app)
 
@@ -43,7 +44,7 @@ class AuthenticateHeaderMiddleware(BaseHTTPMiddleware):
         - Passes through EXCLUDED_PATHS
         - Checks with DB if the key's hash is present
         """
-        if request.url.path in EXCLUDED_PATHS:
+        if not any(request.url.path.startswith(path) for path in _EXCLUDED_PATHS):
             response = await call_next(request)
             return response
 
@@ -86,7 +87,7 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
         self.request_counter = {}
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
-        if request.url.path in EXCLUDED_PATHS:
+        if not any(request.url.path.startswith(path) for path in _EXCLUDED_PATHS):
             response = await call_next(request)
             return response
 

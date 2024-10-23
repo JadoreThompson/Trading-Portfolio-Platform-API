@@ -1,0 +1,95 @@
+header {
+    background-color: white;
+    display: flex;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    max-height: 3rem;
+    border-bottom: 1px solid var(--grey);
+    z-index: 1;
+}
+section {
+    margin-bottom: 7rem;
+}
+
+
+/* Header Styles */
+.header-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+.header-container .container {
+    display: flex;
+    justify-content: flex-end;
+}
+.header-container .img-container {
+    max-height: 100%;
+}
+.header-container .img-container img {
+    max-height: 100%;
+}
+
+
+
+.first-section {
+    display: flex;
+    height: 60vh;
+}
+.first-section .inner-container {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    top: 40%;
+    left: 50%;
+    box-sizing: border-box;
+    text-align: center;
+}
+.first-section .inner-container > * {
+    margin-top: 2rem;
+}
+.first-section .inner-container .container span {
+    font-size: 1.15rem;
+    font-weight: 400;
+    color: #5d5e67;
+}
+
+
+@media(min-width: 1000px) {
+    .second-section .code-container {
+        max-width: 60%;
+    }
+}
+
+
+.third-section .container {
+    display: flex;
+    justify-content: space-around;
+}
+.third-section .container .card {
+    border: none;
+    max-width: 200px;
+    height: 300px;
+}
+.third-section .container .card > *:not(:first-child){
+    margin-top: 2rem;
+}
+.third-section .container .card .card-text {
+    display: flex;
+    text-align: center;
+}
+@media(min-width: 1000px) {
+     .third-section .container .card {
+        max-width: 300px;
+    }
+}
+
+
+.fourth-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 4rem;
+}
+.footer-container {
+    margin-top: 0 !important;
+}
