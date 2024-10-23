@@ -38,7 +38,7 @@ class AuthenticateHeaderMiddleware(BaseHTTPMiddleware):
             return JSONResponse(status_code=401, content={'Error': 'API Key not provided'})
 
         async with get_session() as sess:
-            result = await sess.execute(select(Users).where(Users.api_key == str(ph.hash(api_key))))
+            result = await sess.execute(select(Users.email).where(Users.api_key == str(ph.hash(api_key))))
             if not result.scalars().first():
                 return JSONResponse(status_code=401, content={'Error': 'API Key Invalid'})
 
