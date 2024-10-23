@@ -11,10 +11,21 @@ from models import TradeRequestBody
 from sqlalchemy import select
 
 
-async def get_trades(trade_details: TradeRequestBody, user: Users):
+async def get_trades(user: Users, trade_details: TradeRequestBody = None):
 
     try:
         async with get_session() as session:
+            if trade_details is None:
+                results = await session.execute(select(Orders).where(Orders.user == user))
+                return [
+                    {
+                        key: (value if not isinstance(value, (datetime, UUID)) else str(value))
+                        for key, value in vars(trade).items()
+                        if value != None and key != '_sa_instance_state' and value != 'null'
+                    }
+                    for trade in results.scalars().all()
+                ]
+
             query = select(Orders).where(Orders.user == user)
 
             if trade_details.is_active:

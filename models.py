@@ -4,6 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+# Local
 from enums import OrderType
 
 
@@ -17,10 +18,6 @@ class Base(BaseModel):
 
     class Config:
         use_enum_values = True
-
-
-class AssetAllocationRequestBody(Base):
-    is_active: bool
 
 
 class TradeRequestBody(Base):
@@ -66,7 +63,7 @@ class TradeRequestBody(Base):
         order_type (Optional[OrderType]): Filters trades by order type, either LONG or SHORT.
             If not specified, trades of all types are returned.
     """
-    is_active: Optional[bool] = Field(True,
+    is_active: Optional[bool] = Field(None,
                                       description="Filters through open or close trades; can pass None to return all.")
     ticker: Optional[str] = Field(None,
                                   description="Returns trades on a particular symbol (e.g., BTC-USDT).")
@@ -145,6 +142,18 @@ class Trade(Base):
     closed_at: Optional[datetime] = Field(None, description="Timestamp when the trade was closed.")
     is_active: bool = Field(description="Indicates whether the trade is currently active.")
     order_type: Optional[OrderType] = Field(None, description="Indicates the order type: LONG or SHORT.")
+
+
+class AssetAllocationRequestBody(Base):
+    """
+    False or True for the allocation of assets within an account
+    """
+    is_active: bool
+
+
+class ProfitRequestBody(Base):
+    close_start: Optional[datetime] = None
+    close_end: Optional[datetime] = None
 
 
 class GenerateKey(Base):

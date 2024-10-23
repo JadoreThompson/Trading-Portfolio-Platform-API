@@ -1,14 +1,14 @@
 import json
 from datetime import datetime
-from typing import Annotated, List
+from typing import Annotated, List, Optional
 from uuid import UUID
+from dateutil import parser
 
 # SA
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 # Local
-from config import API_KEY_ALIAS, ph
 from dependencies import get_session, hash_api_key, get_session_2, get_user
 from utils import get_trades
 from db_models import Users, Orders
@@ -18,7 +18,7 @@ from fastapi import APIRouter, Depends, Request, Header
 from fastapi.responses import JSONResponse
 
 from exceptions import DoesNotExist
-from models import TradeRequestBody, Trade, AssetAllocationRequestBody
+from models import TradeRequestBody, Trade, AssetAllocationRequestBody, ProfitRequestBody
 
 # Initialise
 portfolio = APIRouter(prefix='/portfolio', tags=['portfolio'])
@@ -36,9 +36,9 @@ async def get_balance(user: Users = Depends(get_user)):
 
 
 @portfolio.post('/trades', response_model=List[Trade], summary="Returns a list of trades")
-async def return_trades(body: TradeRequestBody, user: Users = Depends(get_user)):
+async def return_trades(body: Optional[TradeRequestBody] = None, user: Users = Depends(get_user)):
     try:
-        trades = await get_trades(body, user)
+        trades = await get_trades(user, body)
         return [Trade(**item) for item in trades]
     except Exception as e:
         print(type(e), str(e))
@@ -48,9 +48,7 @@ async def return_trades(body: TradeRequestBody, user: Users = Depends(get_user))
 @portfolio.post('/asset-allocation')
 async def return_asset_allocation(body: AssetAllocationRequestBody, user: Users = Depends(get_user)):
     try:
-        trades = await get_trades(TradeRequestBody(**{key: value for key, value in body.dict().items()}), user)
-        for item in trades:
-            print(item['ticker'])
+        trades = await get_trades(user, TradeRequestBody(**vars(body)))
 
         # Counting occurrence of ticker
         ticker_occurrences = [
@@ -65,5 +63,85 @@ async def return_asset_allocation(body: AssetAllocationRequestBody, user: Users 
             for item in ticker_occurrences
         }
         return JSONResponse(status_code=200, content=percentage)
+    except Exception:
+        raise
+
+
+@portfolio.post("/profits")
+async def return_asset_allocation(body: ProfitRequestBody = None, user: Users = Depends(get_user)):
+    """Returns the total unrealised and realised profit for the period of time"""
+    try:
+        trades = await get_trades(user, TradeRequestBody(**vars(body)) if body else None)
+        return JSONResponse(status_code=200, content={
+            'realised_pnl': sum(trade.get('realised_pnl', 0) for trade in trades)
+        })
+    except Exception:
+        raise
+
+
+@portfolio.post("/profits/daily")
+async def return_daily_profits(body: ProfitRequestBody = None, user: Users = Depends(get_user)):
+    try:
+        trades = await get_trades(user, TradeRequestBody(**vars(body)) if body else None)
+        unique_dates = set(parser.parse(item['closed_at']).date() for item in trades)
+        daily_profits = {
+            str(date): sum(trade['realised_pnl']
+            for trade in trades
+            if parser.parse(trade['closed_at']).date() == date)
+            for date in unique_dates
+        }
+        return JSONResponse(status_code=200, content=daily_profits)
+    except Exception:
+        raise
+
+
+@portfolio.post("/profits/monthly")
+async def return_monthly_profits(body: ProfitRequestBody = None, user: Users = Depends(get_user)):
+    try:
+        trades = await get_trades(user, TradeRequestBody(**vars(body)) if body else None)
+
+        unique_dates = set(
+            (parser.parse(item['closed_at']).year, parser.parse(item['closed_at']).month) for item in trades
+        )
+        monthly_profits = {
+            str(date): 0
+            for date in unique_dates
+        }
+
+        for trade in trades:
+            closed_at = parser.parse(trade['closed_at'])
+            date = (closed_at.year, closed_at.month)
+            if date in unique_dates:
+                monthly_profits[str(date)] += trade['realised_pnl']
+
+        monthly_profits = {
+            key.replace("(", "").replace(")", "").replace(", ", "-"): value
+            for key, value in monthly_profits.items()
+        }
+
+        return JSONResponse(status_code=200, content=monthly_profits)
+    except Exception:
+        raise
+
+@portfolio.post("/profits/yearly")
+async def return_yearly_profits(body: ProfitRequestBody = None, user: Users = Depends(get_user)):
+    try:
+        trades = await get_trades(user, TradeRequestBody(**vars(body)) if body else None)
+        unique_dates = set(parser.parse(item['closed_at']).year for item in trades)
+        yearly_profits = {
+            str(date): 0
+            for date in unique_dates
+        }
+
+        for trade in trades:
+            year = parser.parse(trade['closed_at']).year
+            yearly_profits[str(year)] += trade['realised_pnl']
+
+        yearly_profits = {
+            key.replace("(", "").replace(")", "").replace(", ", "-"): value
+            for key, value in yearly_profits.items()
+        }
+
+        return JSONResponse(status_code=200, content=yearly_profits)
     except Exception:
         raise
