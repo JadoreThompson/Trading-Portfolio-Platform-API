@@ -19,6 +19,10 @@ class Base(BaseModel):
         use_enum_values = True
 
 
+class AssetAllocationRequestBody(Base):
+    is_active: bool
+
+
 class TradeRequestBody(Base):
     """
     Model representing the request body for filtering trade data.

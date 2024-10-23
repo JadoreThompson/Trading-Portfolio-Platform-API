@@ -1,10 +1,11 @@
+from datetime import datetime
+from uuid import UUID
 
 # Local
 from db_models import Orders, Users
 from dependencies import get_user, get_session
 from exceptions import DoesNotExist
 from models import TradeRequestBody
-
 
 # SA
 from sqlalchemy import select
@@ -69,7 +70,15 @@ async def get_trades(trade_details: TradeRequestBody, user: Users):
 
             result = await session.execute(query)
             trades = result.scalars().all()
-            return trades
+
+            return [
+                {
+                    key: (value if not isinstance(value, (datetime, UUID)) else str(value))
+                    for key, value in vars(trade).items()
+                    if value != None and key != '_sa_instance_state' and value != 'null'
+                }
+                for trade in trades
+            ]
     except DoesNotExist:
         raise
     except Exception:

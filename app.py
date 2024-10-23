@@ -72,9 +72,8 @@ async def get_login(request: Request):
 
 
 @app.post('/login-user')
-async def login(request: Request, form_data: LoginForm, session: AsyncSession = Depends(get_session)):
+async def login(form_data: LoginForm, session: AsyncSession = Depends(get_session)):
     try:
-        print(ph.hash(form_data.password))
         result = await session.execute(select(Users.email)\
                                        .where(Users.email == form_data.email)\
                                         .where(Users.password == ph.hash(form_data.password)))
