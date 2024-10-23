@@ -16,12 +16,26 @@ from routers.portfolio import portfolio
 
 # FastAPI
 from fastapi import FastAPI, Request, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+
+origins = [
+    # Put all the authorised endpoints that can
+    # make requests to the endpoint here
+]
+
 # Initialisation
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 app.add_middleware(AuthenticateHeaderMiddleware)
 app.add_middleware(RateLimitingMiddleware)
 
