@@ -37,7 +37,7 @@ app.add_middleware(
     allow_headers=["*"]
 )
 app.add_middleware(AuthenticateHeaderMiddleware)
-app.add_middleware(RateLimitingMiddleware)
+# app.add_middleware(RateLimitingMiddleware)
 
 app.include_router(portfolio)
 

@@ -144,13 +144,6 @@ class Trade(Base):
     order_type: Optional[OrderType] = Field(None, description="Indicates the order type: LONG or SHORT.")
 
 
-class AssetAllocationRequestBody(Base):
-    """
-    False or True for the allocation of assets within an account
-    """
-    is_active: bool
-
-
 class PeriodRequestBody(Base):
     close_start: Optional[datetime] = None
     close_end: Optional[datetime] = None
@@ -159,14 +152,20 @@ class PeriodRequestBody(Base):
 class MetricRequestBody(PeriodRequestBody):
     metric: Metrics
 
-class WinrateRequestBody(PeriodRequestBody):
+class IsActiveRequestBody(PeriodRequestBody):
     is_active: bool = False
 
-class GenerateKey(Base):
-    """
-    Model representing the generation of an API key.
 
-    Attributes:
-        api_key (str): The generated API key for accessing protected resources.
-    """
-    api_key: str = Field(description="The generated API key for accessing protected resources.")
+class Balance(Base):
+    balance: float
+
+class Pnl(Base):
+    realised_pnl: Optional[float] = 0
+    unrealised_pnl: Optional[float] = 0
+
+class AccountSummary(Balance, Pnl):
+    pass
+
+
+class OrderID(Base):
+    order_id: Optional[str] = None

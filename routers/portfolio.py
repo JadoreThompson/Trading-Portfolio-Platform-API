@@ -1,7 +1,10 @@
 import json
-from datetime import datetime
+import time
+from datetime import datetime, timedelta
 from typing import Annotated, List, Optional
 from uuid import UUID
+
+import sqlalchemy.exc
 from dateutil import parser
 
 # SA
@@ -9,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from arithemtic import sharpe, sortino
+from config import REDIS_CLIENT
 # Local
 from dependencies import get_session, hash_api_key, get_session_2, get_user
 from enums import Metrics
@@ -20,8 +24,8 @@ from fastapi import APIRouter, Depends, Request, Header
 from fastapi.responses import JSONResponse
 
 from exceptions import DoesNotExist
-from models import TradeRequestBody, Trade, AssetAllocationRequestBody, PeriodRequestBody, MetricRequestBody, \
-    WinrateRequestBody
+from models import TradeRequestBody, Trade, PeriodRequestBody, MetricRequestBody, \
+    IsActiveRequestBody, AccountSummary, OrderID
 
 # Initialise
 portfolio = APIRouter(prefix='/portfolio', tags=['portfolio'])
@@ -29,7 +33,6 @@ portfolio = APIRouter(prefix='/portfolio', tags=['portfolio'])
 
 @portfolio.get("/balance")
 async def get_balance(user: Users = Depends(get_user)):
-
     try:
         return JSONResponse(status_code=200, content={'balance': user.balance})
     except DoesNotExist:
@@ -50,7 +53,7 @@ async def return_trades(body: Optional[TradeRequestBody] = None, user: Users = D
 
 
 @portfolio.post('/asset-allocation')
-async def return_asset_allocation(body: AssetAllocationRequestBody, user: Users = Depends(get_user)):
+async def return_asset_allocation(body: IsActiveRequestBody, user: Users = Depends(get_user)):
     try:
         trades = await get_trades(user, TradeRequestBody(**vars(body)))
 
@@ -84,9 +87,16 @@ async def return_asset_allocation(body: PeriodRequestBody = None, user: Users = 
 
 
 @portfolio.post("/profits/daily")
-async def return_daily_profits(body: PeriodRequestBody = None, user: Users = Depends(get_user)):
+async def return_daily_profits(api_key: str = Depends(hash_api_key), body: PeriodRequestBody = None, user: Users = Depends(get_user)):
     try:
-        trades = await get_trades(user, TradeRequestBody(**vars(body)) if body else None)
+        body = vars(body)
+        cache_data = json.loads(REDIS_CLIENT.get(api_key).decode())
+        result = [
+            True for key in {body}
+            if cache_data[key] == body[key]
+        ]
+
+        trades = await get_trades(user, TradeRequestBody(**body) if body else None)
         unique_dates = set(parser.parse(item['closed_at']).date() for item in trades)
         daily_profits = {
             str(date): sum(trade['realised_pnl']
@@ -94,6 +104,9 @@ async def return_daily_profits(body: PeriodRequestBody = None, user: Users = Dep
             if parser.parse(trade['closed_at']).date() == date)
             for date in unique_dates
         }
+        cache_data = {'daily_profits': daily_profits, 'created_at': datetime.now()}
+        cache_data.update(body)
+        REDIS_CLIENT.set(api_key, json.dumps(cache_data))
         return JSONResponse(status_code=200, content=daily_profits)
     except Exception:
         raise
@@ -172,7 +185,7 @@ async def return_metrics(body: MetricRequestBody, user: Users = Depends(get_user
 
 
 @portfolio.post("/winrate")
-async def return_winrate(body: WinrateRequestBody, user: Users = Depends(get_user)):
+async def return_winrate(body: IsActiveRequestBody, user: Users = Depends(get_user)):
     trades = await get_trades(user, TradeRequestBody(**vars(body)) if body else None)
     try:
         return JSONResponse(
@@ -192,3 +205,38 @@ async def return_volume(body: PeriodRequestBody, user: Users = Depends(get_user)
         return JSONResponse(status_code=200, content={'total_volume': sum(trade['dollar_amount'] for trade in trades)})
     except Exception:
         raise
+
+
+@portfolio.post("/summary", response_model=AccountSummary)
+async def return_summary(user: Users = Depends(get_user)):
+    try:
+        trades = await get_trades(user, TradeRequestBody(**{'close_start': datetime.now().date() - timedelta(days=1)}))
+        realised_pnl = sum(trade.get('realised_pnl', 0) for trade in trades)
+        return AccountSummary(
+            balance=user.balance,
+            realised_pnl=realised_pnl,
+            unrealised_pnl=sum(trade['unrealised_pnl'] for trade in trades),
+        )
+    except KeyError:
+        raise DoesNotExist('Trades')
+    except DoesNotExist:
+        raise
+    except Exception:
+        raise
+
+
+@portfolio.post("/trade", response_model=Trade)
+async def return_order(body: OrderID, user: Users = Depends(get_user)):
+    try:
+        trade = await get_trades(user, None, body.order_id)
+        return Trade(**trade)
+    except sqlalchemy.exc.DBAPIError:
+        raise DoesNotExist('Trade')
+    except DoesNotExist:
+        raise
+    except Exception:
+        raise
+
+
+@portfolio.post("/watchlist")
+async def return_watchlist():
