@@ -3,13 +3,13 @@ import time
 from datetime import datetime, timedelta
 from typing import Annotated, List, Optional
 from uuid import UUID
-
-import sqlalchemy.exc
+import asyncpg
 from dateutil import parser
 
 # SA
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, insert
+import sqlalchemy.exc
 
 from arithemtic import sharpe, sortino
 from config import REDIS_CLIENT
@@ -17,15 +17,15 @@ from config import REDIS_CLIENT
 from dependencies import get_session, hash_api_key, get_session_2, get_user
 from enums import Metrics
 from utils import get_trades
-from db_models import Users, Orders
+from db_models import Users, Orders, Watchlist
 
 # FastAPI
-from fastapi import APIRouter, Depends, Request, Header
+from fastapi import APIRouter, Depends, Request, Header, HTTPException
 from fastapi.responses import JSONResponse
 
 from exceptions import DoesNotExist
 from models import TradeRequestBody, Trade, PeriodRequestBody, MetricRequestBody, \
-    IsActiveRequestBody, AccountSummary, OrderID
+    IsActiveRequestBody, AccountSummary, OrderID, WatchlistItem
 
 # Initialise
 portfolio = APIRouter(prefix='/portfolio', tags=['portfolio'])
@@ -238,5 +238,27 @@ async def return_order(body: OrderID, user: Users = Depends(get_user)):
         raise
 
 
-@portfolio.post("/watchlist")
-async def return_watchlist():
+@portfolio.post("/watchlist", response_model=List[WatchlistItem])
+async def return_watchlist(user: Users = Depends(get_user)):
+    try:
+        async with get_session() as session:
+            result = await session.execute(select(Watchlist).where(Watchlist.user == user))
+            return [WatchlistItem(ticker=vars(item).get('ticker', None)) for item in result.scalars().all()]
+    except DoesNotExist:
+        raise
+    except Exception:
+        raise
+
+
+@portfolio.post("/watchlist/add")
+async def add_to_watchlist(body: WatchlistItem, user: Users = Depends(get_user), session: AsyncSession = Depends(get_session_2)):
+    try:
+        result = await session.execute(insert(Watchlist).values(ticker=body.ticker, user_id=user.email))
+        await session.commit()
+        return HTTPException(status_code=200)
+    except sqlalchemy.exc.IntegrityError:
+        return JSONResponse(status_code=409, content={'error': f'{body.ticker} already in watchlist'})
+    except DoesNotExist:
+        raise
+    except Exception:
+        raise

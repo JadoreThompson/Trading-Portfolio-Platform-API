@@ -9,3 +9,9 @@ class OrderType(str, Enum):
 class Metrics(str, Enum):
     SHARPE = 'sharpe'
     SORTINO = 'sortino'
+
+
+class Ticker(str, Enum):
+    SOL = 'SOL-USDT'
+    BTC = 'BTC-USDT'
+    ETH = 'ETH-USDT'

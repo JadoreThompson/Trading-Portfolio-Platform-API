@@ -37,6 +37,7 @@ async def get_session_2():
             yield session
         except Exception:
             await session.rollback()
+            print('rollbacked')
             raise
         finally:
             await session.close()

@@ -1,12 +1,11 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from uuid import UUID
 
-from pydantic import BaseModel, Field
-
 # Local
-from enums import OrderType, Metrics
+from enums import OrderType, Metrics, Ticker
 
+from pydantic import BaseModel, Field
 
 class Base(BaseModel):
     """
@@ -169,3 +168,6 @@ class AccountSummary(Balance, Pnl):
 
 class OrderID(Base):
     order_id: Optional[str] = None
+
+class WatchlistItem(Base):
+    ticker: Ticker

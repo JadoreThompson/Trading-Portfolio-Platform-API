@@ -4,7 +4,7 @@ from typing import Optional
 from uuid import uuid4
 
 # SQLAlchemy
-from sqlalchemy import String, Float, Boolean, DateTime, ForeignKey, UUID
+from sqlalchemy import String, Float, Boolean, DateTime, ForeignKey, UUID, Integer, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -25,6 +25,7 @@ class Users(Base):
 
     # Relationships
     orders = relationship('Orders', back_populates='user')
+    watchlist = relationship('Watchlist', back_populates='user')
 
 
 class Orders(Base):
@@ -45,3 +46,17 @@ class Orders(Base):
 
     # Relationships
     user = relationship("Users", back_populates="orders")
+
+
+class Watchlist(Base):
+    __tablename__ = 'dashboard_watchlist'
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    ticker: Mapped[str] = mapped_column(String)
+    user_id: Mapped[str] = mapped_column(String, ForeignKey('accounts_customuser.email'))
+
+    # Relationships
+    user = relationship('Users', back_populates='watchlist')
+
+    # Constraints
+    unique_user_ticker = UniqueConstraint('ticker', 'user_id', name='unique_user_ticker')
