@@ -44,6 +44,7 @@ class AuthenticateHeaderMiddleware(BaseHTTPMiddleware):
         - Passes through EXCLUDED_PATHS
         - Checks with DB if the key's hash is present
         """
+        # TODO: Store the api key in session to reduce load
         if not any(request.url.path.startswith(path) for path in _EXCLUDED_PATHS):
             response = await call_next(request)
             return response

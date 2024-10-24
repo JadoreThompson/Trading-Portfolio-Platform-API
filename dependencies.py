@@ -14,6 +14,8 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from exceptions import DoesNotExist
+
 
 @asynccontextmanager
 async def get_session():
@@ -37,7 +39,6 @@ async def get_session_2():
             yield session
         except Exception:
             await session.rollback()
-            print('rollbacked')
             raise
         finally:
             await session.close()
@@ -45,11 +46,14 @@ async def get_session_2():
 
 def hash_api_key(request: Request) -> str:
     """Returns str of argon2 hashed api key"""
-    print(request.headers.get(API_KEY_ALIAS))
     return str(ph.hash(request.headers.get(API_KEY_ALIAS)))
 
 
-async def get_user(request: Request):
+async def get_user(request: Request) -> Users:
+    """
+    Uses the api key in header to indentify the user
+    returns an object of type Users
+    """
     async with get_session() as session:
         result = await session.execute(
             select(Users)
@@ -57,10 +61,13 @@ async def get_user(request: Request):
         )
         users = result.scalars().all()
 
-        for user in users:
-            try:
-                if ph.verify(user.api_key, request.headers.get(API_KEY_ALIAS)):
-                    return user
-            except argon2.exceptions.VerifyMismatchError:
-                continue
-        return JSONResponse(status_code=401, content={'error': "Account doesn't exist"})
+        try:
+            for user in users:
+                try:
+                    if ph.verify(user.api_key, request.headers.get(API_KEY_ALIAS)):
+                        return user
+                except argon2.exceptions.VerifyMismatchError:
+                    continue
+            raise DoesNotExist('User')
+        except DoesNotExist:
+            raise

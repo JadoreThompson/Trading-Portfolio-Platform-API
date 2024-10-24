@@ -26,7 +26,6 @@ async def get_trades(user: Users, trade_details: TradeRequestBody = None, order_
                 ]
 
             if order_id:
-                # result = await session.execute(select(Orders).where(Orders.order_id == order_id)))
                 result = await session.execute(select(Orders).where(
                     (Orders.order_id == order_id) & (Orders.user == user)
                 ))

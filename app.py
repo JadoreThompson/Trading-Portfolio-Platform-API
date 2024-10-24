@@ -36,13 +36,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
 app.add_middleware(AuthenticateHeaderMiddleware)
-# app.add_middleware(RateLimitingMiddleware)
+app.add_middleware(RateLimitingMiddleware)
 
 app.include_router(portfolio)
 
-from pathlib import Path
-static_folder = Path('static')
 app.mount('/static', StaticFiles(directory='static'), name='static')
 templates = Jinja2Templates(directory='templates')
 

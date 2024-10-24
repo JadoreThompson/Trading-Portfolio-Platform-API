@@ -1,9 +1,6 @@
 import json
-import time
 from datetime import datetime, timedelta
-from typing import Annotated, List, Optional
-from uuid import UUID
-import asyncpg
+from typing import List, Optional
 from dateutil import parser
 
 # SA
@@ -17,7 +14,7 @@ from config import REDIS_CLIENT
 from dependencies import get_session, hash_api_key, get_session_2, get_user
 from enums import Metrics
 from utils import get_trades
-from db_models import Users, Orders, Watchlist
+from db_models import Users, Watchlist
 
 # FastAPI
 from fastapi import APIRouter, Depends, Request, Header, HTTPException
@@ -27,12 +24,16 @@ from exceptions import DoesNotExist
 from models import TradeRequestBody, Trade, PeriodRequestBody, MetricRequestBody, \
     IsActiveRequestBody, AccountSummary, OrderID, WatchlistItem
 
+
 # Initialise
 portfolio = APIRouter(prefix='/portfolio', tags=['portfolio'])
 
 
 @portfolio.get("/balance")
 async def get_balance(user: Users = Depends(get_user)):
+    """
+    Returns the balance for the account
+    """
     try:
         return JSONResponse(status_code=200, content={'balance': user.balance})
     except DoesNotExist:
@@ -44,6 +45,9 @@ async def get_balance(user: Users = Depends(get_user)):
 
 @portfolio.post('/trades', response_model=List[Trade], summary="Returns a list of trades")
 async def return_trades(body: Optional[TradeRequestBody] = None, user: Users = Depends(get_user)):
+    """
+    Returns a list of trades for the account
+    """
     try:
         trades = await get_trades(user, body)
         return [Trade(**item) for item in trades]
@@ -54,6 +58,14 @@ async def return_trades(body: Optional[TradeRequestBody] = None, user: Users = D
 
 @portfolio.post('/asset-allocation')
 async def return_asset_allocation(body: IsActiveRequestBody, user: Users = Depends(get_user)):
+    """
+    Returns the percentage share in number of trades per each currency.
+    Future: Percentage share of dollar_amount, for example if user has 10k in open position
+                dollar amounts. BTC-USDT has 6000 , SOL-USDT has 3000 and ETH-USDT has 1000
+                {
+                    BTC-USDT: 60% and so forth
+                }
+    """
     try:
         trades = await get_trades(user, TradeRequestBody(**vars(body)))
 
@@ -88,15 +100,13 @@ async def return_asset_allocation(body: PeriodRequestBody = None, user: Users = 
 
 @portfolio.post("/profits/daily")
 async def return_daily_profits(api_key: str = Depends(hash_api_key), body: PeriodRequestBody = None, user: Users = Depends(get_user)):
+    """
+    Returns the daily accumulated realised pnl for each day within the desired period
+    """
     try:
         body = vars(body)
-        cache_data = json.loads(REDIS_CLIENT.get(api_key).decode())
-        result = [
-            True for key in {body}
-            if cache_data[key] == body[key]
-        ]
-
         trades = await get_trades(user, TradeRequestBody(**body) if body else None)
+
         unique_dates = set(parser.parse(item['closed_at']).date() for item in trades)
         daily_profits = {
             str(date): sum(trade['realised_pnl']
@@ -104,9 +114,7 @@ async def return_daily_profits(api_key: str = Depends(hash_api_key), body: Perio
             if parser.parse(trade['closed_at']).date() == date)
             for date in unique_dates
         }
-        cache_data = {'daily_profits': daily_profits, 'created_at': datetime.now()}
-        cache_data.update(body)
-        REDIS_CLIENT.set(api_key, json.dumps(cache_data))
+
         return JSONResponse(status_code=200, content=daily_profits)
     except Exception:
         raise
@@ -114,6 +122,10 @@ async def return_daily_profits(api_key: str = Depends(hash_api_key), body: Perio
 
 @portfolio.post("/profits/monthly")
 async def return_monthly_profits(body: PeriodRequestBody = None, user: Users = Depends(get_user)):
+    """
+    Returns the accumulated realised pnl per month in the desired period
+    :param: PeriodRequestBody
+    """
     try:
         trades = await get_trades(user, TradeRequestBody(**vars(body)) if body else None)
 
@@ -142,6 +154,10 @@ async def return_monthly_profits(body: PeriodRequestBody = None, user: Users = D
 
 @portfolio.post("/profits/yearly")
 async def return_yearly_profits(body: PeriodRequestBody = None, user: Users = Depends(get_user)):
+    """
+    Returns the accumulated realised pnl per year in the desired period
+    :param: PeriodRequestBody
+    """
     try:
         trades = await get_trades(user, TradeRequestBody(**vars(body)) if body else None)
         unique_dates = set(parser.parse(item['closed_at']).year for item in trades)
@@ -166,6 +182,15 @@ async def return_yearly_profits(body: PeriodRequestBody = None, user: Users = De
 
 @portfolio.post("/metrics")
 async def return_metrics(body: MetricRequestBody, user: Users = Depends(get_user)):
+    """
+    Returns common metric for the account:
+    - Sharpe Ratio
+    - Sortino
+    Future:
+        - Standard Deviation
+        - Downward Deviation
+        - Treynor Ratio
+    """
     try:
         body = vars(body)
         trades = await get_trades(user, TradeRequestBody(**body) if body else None)
@@ -186,6 +211,9 @@ async def return_metrics(body: MetricRequestBody, user: Users = Depends(get_user
 
 @portfolio.post("/winrate")
 async def return_winrate(body: IsActiveRequestBody, user: Users = Depends(get_user)):
+    """
+    Returns winrate of the account
+    """
     trades = await get_trades(user, TradeRequestBody(**vars(body)) if body else None)
     try:
         return JSONResponse(
@@ -200,6 +228,9 @@ async def return_winrate(body: IsActiveRequestBody, user: Users = Depends(get_us
 
 @portfolio.post("/volume")
 async def return_volume(body: PeriodRequestBody, user: Users = Depends(get_user)):
+    """
+    Returns the accumulated dollar_amount spent on trades for the account
+    """
     try:
         trades = await get_trades(user, TradeRequestBody(**vars(body)) if body else None)
         return JSONResponse(status_code=200, content={'total_volume': sum(trade['dollar_amount'] for trade in trades)})
@@ -209,6 +240,9 @@ async def return_volume(body: PeriodRequestBody, user: Users = Depends(get_user)
 
 @portfolio.post("/summary", response_model=AccountSummary)
 async def return_summary(user: Users = Depends(get_user)):
+    """
+    Returns summary for account
+    """
     try:
         trades = await get_trades(user, TradeRequestBody(**{'close_start': datetime.now().date() - timedelta(days=1)}))
         realised_pnl = sum(trade.get('realised_pnl', 0) for trade in trades)
@@ -227,6 +261,7 @@ async def return_summary(user: Users = Depends(get_user)):
 
 @portfolio.post("/trade", response_model=Trade)
 async def return_order(body: OrderID, user: Users = Depends(get_user)):
+    """Returns specific trade on account"""
     try:
         trade = await get_trades(user, None, body.order_id)
         return Trade(**trade)
@@ -240,6 +275,7 @@ async def return_order(body: OrderID, user: Users = Depends(get_user)):
 
 @portfolio.post("/watchlist", response_model=List[WatchlistItem])
 async def return_watchlist(user: Users = Depends(get_user)):
+    """Returns all currencies currently in the watchlist"""
     try:
         async with get_session() as session:
             result = await session.execute(select(Watchlist).where(Watchlist.user == user))
@@ -252,8 +288,12 @@ async def return_watchlist(user: Users = Depends(get_user)):
 
 @portfolio.post("/watchlist/add")
 async def add_to_watchlist(body: WatchlistItem, user: Users = Depends(get_user), session: AsyncSession = Depends(get_session_2)):
+    """
+    Adds ticker to watchlist
+    - 409, ticker already in watchlist
+    """
     try:
-        result = await session.execute(insert(Watchlist).values(ticker=body.ticker, user_id=user.email))
+        await session.execute(insert(Watchlist).values(ticker=body.ticker, user_id=user.email))
         await session.commit()
         return HTTPException(status_code=200)
     except sqlalchemy.exc.IntegrityError:
