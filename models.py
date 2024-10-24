@@ -3,7 +3,7 @@ from typing import Optional, List
 from uuid import UUID
 
 # Local
-from enums import OrderType, Metrics, Ticker
+from enums import OrderType, Metrics, Ticker, Intervals
 
 from pydantic import BaseModel, Field
 
@@ -150,6 +150,7 @@ class PeriodRequestBody(Base):
 
 class MetricRequestBody(PeriodRequestBody):
     metric: Metrics
+    interval: Intervals
 
 class IsActiveRequestBody(PeriodRequestBody):
     is_active: bool = False

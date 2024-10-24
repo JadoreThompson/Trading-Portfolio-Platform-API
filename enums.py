@@ -6,9 +6,16 @@ class OrderType(str, Enum):
     SHORT = 'short'
 
 
+class Intervals(str, Enum):
+    MONTHLY = 'm'
+    DAILY = 'd'
+    YEARLY = 'y'
+
+
 class Metrics(str, Enum):
     SHARPE = 'sharpe'
     SORTINO = 'sortino'
+    STD = 'std'
 
 
 class Ticker(str, Enum):

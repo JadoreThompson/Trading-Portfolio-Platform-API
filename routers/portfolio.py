@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, insert
 import sqlalchemy.exc
 
-from arithemtic import sharpe, sortino
+from arithemtic import sharpe, sortino, std
 from config import REDIS_CLIENT
 # Local
 from dependencies import get_session, hash_api_key, get_session_2, get_user
@@ -193,13 +193,53 @@ async def return_metrics(body: MetricRequestBody, user: Users = Depends(get_user
     """
     try:
         body = vars(body)
-        trades = await get_trades(user, TradeRequestBody(**body) if body else None)
+        trades = await get_trades(user, TradeRequestBody(
+            **{k: v for k, v in body.items() if k in ['close_start', 'close_end']}) if body else None
+                                  )
+
+        interval = body.get("interval", None)
+        if interval == 'd':
+            unique_dates = set(parser.parse(item['closed_at']).date() for item in trades)
+            trades = {
+                str(date): sum(trade['realised_pnl']
+                               for trade in trades
+                               if parser.parse(trade['closed_at']).date() == date)
+                for date in unique_dates
+            }
+        if interval == 'm':
+            unique_dates = set(
+                (parser.parse(item['closed_at']).year, parser.parse(item['closed_at']).month) for item in trades
+            )
+            formatter = {
+                str(date): 0
+                for date in unique_dates
+            }
+
+            for trade in trades:
+                closed_at = parser.parse(trade['closed_at'])
+                date = (closed_at.year, closed_at.month)
+                if date in unique_dates:
+                    formatter[str(date)] += trade['realised_pnl']
+            trades = formatter
+        if interval == 'y':
+            unique_dates = set(parser.parse(item['closed_at']).year for item in trades)
+            formatter = {
+                str(date): 0
+                for date in unique_dates
+            }
+
+            for trade in trades:
+                year = parser.parse(trade['closed_at']).year
+                formatter[str(year)] += trade['realised_pnl']
+            trades = formatter
 
         metric = body.get('metric', None)
         if metric == Metrics.SHARPE.value:
-            answer = sharpe([trade['realised_pnl'] for trade in trades])
+            answer = sharpe([v for _, v in trades.items()])
         if metric == Metrics.SORTINO.value:
-            answer = sortino([trade['realised_pnl'] for trade in trades])
+            answer = sortino([v for _, v in trades.items()])
+        if metric == Metrics.STD.value:
+            answer = std([v for _, v in trades.items()])
         return JSONResponse(status_code=200, content={'metric': metric, 'value': answer})
     except UnboundLocalError:
         raise DoesNotExist('Metric')

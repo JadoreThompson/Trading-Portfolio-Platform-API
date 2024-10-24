@@ -18,6 +18,7 @@ from routers.portfolio import portfolio
 from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.exceptions import RequestValidationError
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -53,8 +54,12 @@ async def exception_handler(r: Request, e: Exception):
 
 @app.exception_handler(DoesNotExist)
 async def does_not_exist_handler(request: Request, e: DoesNotExist):
-    return JSONResponse(status_code=404, content={"message": e.message})
+    return JSONResponse(status_code=404, content={"error": e.message})
 
+# 422 Handler
+@app.exception_handler(RequestValidationError)
+async def does_not_exist_handler(request: Request, e: RequestValidationError):
+    return JSONResponse(status_code=404, content={"error": 'Invalid Payload Schema'})
 
 '''Endpoints'''
 @app.get('/')

@@ -30,10 +30,6 @@ class AuthenticateHeaderMiddleware(BaseHTTPMiddleware):
     Checks that the api key is present in header and that it matches
     with an existing key stored
     """
-    _KEYS = [
-        "$argon2id$v=19$m=102400,t=2,p=8$1F7sQVRlqtD0lYmWTEsKcA$e2q5x2hbsBo2cxfIWXfco9bXq5A45dXL8dA3HP/UbAE",
-        'dog'
-    ]
     _SESSION_EXPIRY = 432000 # 5 days in seconds
 
     def __init__(self, app):
@@ -94,7 +90,7 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
     [count, date]
     """
     _TIME_LIMIT = timedelta(minutes=1)
-    _REQUEST_LIMIT = 5
+    _REQUEST_LIMIT = 30
 
     def __init__(self, app):
         super().__init__(app)
