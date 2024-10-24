@@ -3,7 +3,7 @@ from uuid import UUID
 
 # Local
 from db_models import Orders, Users
-from dependencies import get_user, get_session
+from dependencies import get_session
 from exceptions import DoesNotExist
 from models import TradeRequestBody
 

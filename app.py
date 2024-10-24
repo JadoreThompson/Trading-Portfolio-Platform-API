@@ -23,8 +23,7 @@ from fastapi.templating import Jinja2Templates
 
 
 origins = [
-    # Put all the authorised endpoints that can
-    # make requests to the endpoint here
+# All authorised endpoints
 ]
 
 # Initialisation
@@ -66,7 +65,7 @@ async def read_root(request: Request):
 
 
 @app.get('/login')
-async def get_login(request: Request):
+async def get_login():
     web_app_login_url = "login"
     return RedirectResponse(web_app_login_url)
 

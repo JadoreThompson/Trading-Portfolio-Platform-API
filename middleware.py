@@ -1,3 +1,4 @@
+import json
 from contextlib import asynccontextmanager
 from datetime import timedelta, datetime
 
@@ -7,7 +8,7 @@ from argon2 import PasswordHasher
 # Local
 from db_models import Users
 from dependencies import get_session
-from config import API_KEY_ALIAS, ph
+from config import API_KEY_ALIAS, ph, REDIS_CLIENT
 from exceptions import DoesNotExist
 
 # Starlette
@@ -33,8 +34,7 @@ class AuthenticateHeaderMiddleware(BaseHTTPMiddleware):
         "$argon2id$v=19$m=102400,t=2,p=8$1F7sQVRlqtD0lYmWTEsKcA$e2q5x2hbsBo2cxfIWXfco9bXq5A45dXL8dA3HP/UbAE",
         'dog'
     ]
-
-
+    _SESSION_EXPIRY = 432000 # 5 days in seconds
 
     def __init__(self, app):
         super().__init__(app)
@@ -50,6 +50,17 @@ class AuthenticateHeaderMiddleware(BaseHTTPMiddleware):
             return response
 
         api_key = request.headers.get(API_KEY_ALIAS, None)
+
+        # Checking for key in cache
+        try:
+            cache = json.loads(REDIS_CLIENT.get(api_key).decode())
+            if (cache['created_at'] - datetime.now().timestamp()) >= self._SESSION_EXPIRY:
+                REDIS_CLIENT.delete(api_key)
+            else:
+                return await call_next(request)
+        except AttributeError:
+            pass
+
         if not api_key:
             return JSONResponse(status_code=401, content={'error': 'API Key not provided'})
 
@@ -65,6 +76,8 @@ class AuthenticateHeaderMiddleware(BaseHTTPMiddleware):
             for user in users:
                 try:
                     if ph.verify(user.api_key, api_key):
+                        # Mimicking session storing
+                        REDIS_CLIENT.set(api_key, json.dumps({'authenticated': True, 'created_at': datetime.now().timestamp()}))
                         return await call_next(request)
                 except argon2.exceptions.VerifyMismatchError:
                     continue
